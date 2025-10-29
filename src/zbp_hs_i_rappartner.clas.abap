@@ -1,15 +1,5 @@
-class ZBP_HS_I_RAPPARTNER definition
-  public
-  abstract
-  final
-  create public .
-
-public section.
-protected section.
-private section.
+CLASS zbp_hs_i_rappartner DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zhs_i_rappartner.
 ENDCLASS.
 
-
-
-CLASS ZBP_HS_I_RAPPARTNER IMPLEMENTATION.
+CLASS zbp_hs_i_rappartner IMPLEMENTATION.
 ENDCLASS.

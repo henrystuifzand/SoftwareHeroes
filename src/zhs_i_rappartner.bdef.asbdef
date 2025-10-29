@@ -11,7 +11,7 @@ authorization master ( instance )
   update;
   delete;
 
-  mapping for zbs_dmo_partner
+  mapping for zhs_dmo_partner
     {
       PartnerNumber   = partner;
       PartnerName     = name;
