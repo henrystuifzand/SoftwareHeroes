@@ -1,4 +1,4 @@
 @EndUserText.label: 'Simple Partner Service'
 define service ZHS_SIMPLE_PARTNER {
-  expose ZHS_I_RAPPartner as Partner;
+  expose ZHS_C_RAPPartner as Partner;
 }
