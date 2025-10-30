@@ -11,6 +11,10 @@ authorization master ( instance )
   update;
   delete;
 
+  validation validateKeyisFilled on save { create; }
+  validation validateCoreData on save { create; field Country, PaymentCurrency; }
+
+
   mapping for zhs_dmo_partner
     {
       PartnerNumber   = partner;
