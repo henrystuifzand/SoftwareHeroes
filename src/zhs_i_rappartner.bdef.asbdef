@@ -16,6 +16,9 @@ authorization master ( instance )
 
   determination fillCurrency on modify { create; update; }
 
+  action fillEmptyStreets;
+  static action clearAllEmptyStreets;
+
 
   mapping for zhs_dmo_partner
     {
