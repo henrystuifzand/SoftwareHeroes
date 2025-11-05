@@ -65,10 +65,12 @@ annotate entity ZHS_C_RAPPartner with
   @UI.identification: [{ position: 60, qualifier: 'PARTNER_ADDRESS' }]
   @EndUserText.label: 'Ctry'
   @EndUserText.quickInfo: 'Country'
+  @Consumption.valueHelpDefinition: [{ entity: { name: 'ZHS_C_CountryVH', element: 'Country' } }]  
   Country;
 
   @UI.identification: [{ position: 70, qualifier: 'PARTNER_INFO' }]
   @EndUserText.label: 'PayCurr'
   @EndUserText.quickInfo: 'Payment Currency'
+  @Consumption.valueHelpDefinition: [{ entity: { name: 'I_CurrencyStdVH', element: 'Currency' } }]
   PaymentCurrency;
 }
