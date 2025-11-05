@@ -13,7 +13,9 @@ CLASS lhc_Partner DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING keys FOR ACTION partner~clearallemptystreets.
 
     METHODS fillemptystreets FOR MODIFY
-      IMPORTING keys FOR ACTION partner~fillemptystreets.
+      IMPORTING keys FOR ACTION partner~fillemptystreets RESULT result.
+    METHODS copyline FOR MODIFY
+      IMPORTING keys FOR ACTION partner~copyline.
 
 ENDCLASS.
 
@@ -99,39 +101,82 @@ CLASS lhc_Partner IMPLEMENTATION.
 
   METHOD clearAllEmptyStreets.
 
-  SELECT FROM zhs_dmo_partner
-    FIELDS partner, street
-    WHERE street = 'EMPTY'
-    INTO TABLE @DATA(lt_partner_data).
+    SELECT FROM zhs_dmo_partner
+      FIELDS partner, street
+      WHERE street = 'EMPTY'
+      INTO TABLE @DATA(lt_partner_data).
 
-  LOOP AT lt_partner_data INTO DATA(ls_partner).
-    MODIFY ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
-      ENTITY Partner
-      UPDATE FIELDS ( Street )
-      WITH VALUE #( ( PartnerNumber = ls_partner-partner Street = '' %control-Street = if_abap_behv=>mk-on ) ).
-  ENDLOOP.
+    LOOP AT lt_partner_data INTO DATA(ls_partner).
+      MODIFY ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
+        ENTITY Partner
+        UPDATE FIELDS ( Street )
+        WITH VALUE #( ( PartnerNumber = ls_partner-partner Street = '' %control-Street = if_abap_behv=>mk-on ) ).
+    ENDLOOP.
 
-  INSERT VALUE #(
-    %msg = new_message_with_text( text = |{ lines( lt_partner_data ) } records changed|
-    severity = if_abap_behv_message=>severity-success )
-  ) INTO TABLE reported-partner.
+    INSERT VALUE #(
+      %msg = new_message_with_text( text = |{ lines( lt_partner_data ) } records changed|
+      severity = if_abap_behv_message=>severity-success )
+    ) INTO TABLE reported-partner.
 
 
   ENDMETHOD.
 
   METHOD fillEmptyStreets.
-  READ ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
-    ENTITY Partner
-    FIELDS ( Street )
-    WITH CORRESPONDING #( keys )
-    RESULT DATA(lt_partner_data).
-
-  LOOP AT lt_partner_data INTO DATA(ls_partner) WHERE Street IS INITIAL.
-    MODIFY ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
+    READ ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
       ENTITY Partner
-      UPDATE FIELDS ( Street )
-      WITH VALUE #( ( %tky = ls_partner-%tky Street = 'EMPTY' %control-Street = if_abap_behv=>mk-on ) ).
-  ENDLOOP.
+      FIELDS ( Street )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_partner_data).
+
+    LOOP AT lt_partner_data INTO DATA(ls_partner) WHERE Street IS INITIAL.
+      MODIFY ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
+        ENTITY Partner
+        UPDATE FIELDS ( Street )
+        WITH VALUE #( ( %tky = ls_partner-%tky Street = 'EMPTY' %control-Street = if_abap_behv=>mk-on ) ).
+
+      INSERT VALUE #( %tky = ls_partner-%tky %param = ls_partner ) INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD copyLine.
+
+    DATA:
+  lt_creation TYPE TABLE FOR CREATE ZHS_I_RAPPartner.
+
+    READ ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
+      ENTITY Partner ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_partner_data).
+
+    SELECT FROM zhs_dmo_partner
+      FIELDS MAX( partner )
+      INTO @DATA(ld_number).
+
+    LOOP AT lt_partner_data INTO DATA(ls_partner).
+      ld_number += 1.
+      ls_partner-PartnerNumber = ld_number.
+      ls_partner-PartnerName &&= | copy|.
+
+
+      INSERT VALUE #( %cid = keys[ sy-tabix ]-%cid ) INTO TABLE lt_creation REFERENCE INTO DATA(lr_create).
+
+      lr_create->* = CORRESPONDING #( ls_partner ).
+      lr_create->%cid = keys[ sy-tabix ]-%cid.
+      lr_create->%control-PartnerNumber = if_abap_behv=>mk-on.
+      lr_create->%control-PartnerName = if_abap_behv=>mk-on.
+      lr_create->%control-Street = if_abap_behv=>mk-on.
+      lr_create->%control-City = if_abap_behv=>mk-on.
+      lr_create->%control-Country = if_abap_behv=>mk-on.
+      lr_create->%control-PaymentCurrency = if_abap_behv=>mk-on.
+    ENDLOOP.
+
+    MODIFY ENTITIES OF ZHS_I_RAPPartner IN LOCAL MODE
+      ENTITY Partner CREATE FROM lt_creation
+      FAILED DATA(ls_failed)
+      MAPPED DATA(ls_mapped)
+      REPORTED DATA(ls_reported).
+
+    mapped-partner = ls_mapped-partner.
 
   ENDMETHOD.
 
