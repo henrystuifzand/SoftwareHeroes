@@ -22,6 +22,8 @@ authorization master ( instance )
   static action clearAllEmptyStreets;
   factory action copyLine [1];
 
+  static action withPopup parameter ZHS_I_PopupEntity;
+
   mapping for zhs_dmo_partner
     {
       PartnerNumber   = partner;
